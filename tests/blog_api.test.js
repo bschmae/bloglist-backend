@@ -29,29 +29,43 @@ test('there exists an id property', async () => {
     const response = await api.get('/api/blogs');
     const blogs = response.body;
     expect(blogs[0].id).toBeDefined();
-})
+});
 
-describe('successfully create new blog post', () => {
-    test('add new blog', async () => {
-        const newBlog = {
-            title: "Biden vs Trump - Continued",
-            author: "Nate Silver",
-            url: "https://fivethirtyeight.com",
-            likes: 200
-        };
+test('add new blog', async () => {
+    const newBlog = {
+        title: "Biden vs Trump - Continued",
+        author: "Nate Silver",
+        url: "https://fivethirtyeight.com",
+        likes: 200
+    };
 
-        await api.post('/api/blogs').send(newBlog).expect(201);
+    await api.post('/api/blogs').send(newBlog).expect(201);
 
-        const response = await api.get('/api/blogs');
+    const response = await api.get('/api/blogs');
 
-        const contents = response.body.map(r => r.title);
+    const contents = response.body.map(r => r.title);
 
-        expect(response.body).toHaveLength(initialBlogs.length + 1);
+    expect(response.body).toHaveLength(initialBlogs.length + 1);
 
-        expect(contents).toContain("Biden vs Trump - Continued");
-    })
-})
-  
+    expect(contents).toContain("Biden vs Trump - Continued");
+});
+
+test('if likes property missing, likes default to zero', async () => {
+    const newBlog = {
+        title: "Biden vs Trump - Continued",
+        author: "Nate Silver",
+        url: "https://fivethirtyeight.com",
+    };
+
+    await api.post('/api/blogs').send(newBlog).expect(201);
+
+    const response = await api.get('/api/blogs');
+
+    const blog = response.body.find(blog => blog.title === "Biden vs Trump - Continued");
+    console.log(blog);
+    expect(blog.likes).toBe(0);
+});
+
 afterAll(async () => {
     await mongoose.connection.close();
 });
