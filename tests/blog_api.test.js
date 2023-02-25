@@ -15,7 +15,7 @@ beforeEach(async () => {
 
 describe('returns correct data', () => {
     test('there are three blogs', async () => {
-        const response = await api.get('/api/blogs');	
+        const response = await api.get('/api/blogs');
         expect(response.body).toHaveLength(3);
     });
     
@@ -77,6 +77,32 @@ describe('addition of blog', () => {
     
         await api.post('/api/blogs').send(newBlog).expect(400);
     });    
+});
+
+describe('deletion of a blog', () => {
+    test('succeeds with status code 204 if id is valid', async () => {
+        const blogResponse = await api.get('/api/blogs');
+        const blogsAtStart = blogResponse.body;
+        
+        const blogToDelete = blogsAtStart[0];
+        await api
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .expect(204);
+
+        const newBlogResponse = await api.get('/api/blogs');
+        const blogsAtEnd = newBlogResponse.body;
+
+        expect(blogsAtEnd).toHaveLength(initialBlogs.length - 1);
+
+        const contents = blogsAtEnd.map(r => r.title);
+
+        expect(contents).not.toContain(blogToDelete.title);
+    });
+
+    test('fails with status code 404 if id is invalid', async () => {
+        const invalidId = '5fa64876e60b7b4be14a2d37';
+        await api.delete(`/api/blogs/${invalidId}`).expect(404);
+    });
 });
 
 afterAll(async () => {
