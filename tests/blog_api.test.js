@@ -83,7 +83,7 @@ describe('deletion of a blog', () => {
     test('succeeds with status code 204 if id is valid', async () => {
         const blogResponse = await api.get('/api/blogs');
         const blogsAtStart = blogResponse.body;
-        
+
         const blogToDelete = blogsAtStart[0];
         await api
         .delete(`/api/blogs/${blogToDelete.id}`)
@@ -103,6 +103,28 @@ describe('deletion of a blog', () => {
         const invalidId = '5fa64876e60b7b4be14a2d37';
         await api.delete(`/api/blogs/${invalidId}`).expect(404);
     });
+});
+
+describe('updating a blog', () => {
+    test('succeeds with status cood 200 if id is valid', async () => {
+        const blogResponse = await api.get('/api/blogs');
+        const blogToUpdate = blogResponse.body[0];
+        const newLikes = 0;
+        blogToUpdate.likes = newLikes;
+
+        await api.put(`/api/blogs/${blogToUpdate.id}`).send(blogToUpdate).expect(200);
+
+        const newBlogResponse = await api.get('/api/blogs');
+
+        const check = newBlogResponse.body.find(r => r.id === blogToUpdate.id);
+
+        expect(check.likes).toBe(0);
+    });
+
+    test('fails with status code 404 if id is invalid', async () => {
+		const invalidBlogId = "5fa64876e60b7b4be14a2d37";		
+		await api.put(`/api/blogs/${invalidBlogId}`).send({likes: 0}).expect(404);
+	});
 });
 
 afterAll(async () => {
