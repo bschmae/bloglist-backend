@@ -38,4 +38,36 @@ describe('when there is initially one user in db', () => {
       const usernames = usersAtEnd.map(u => u.username)
       expect(usernames).toContain(newUser.username)
     });
-  });
+});
+
+describe('addition of invalid user', () => {
+    test('username already in db', async () => {
+		const userPayload = {
+			username: 'root',
+			password: 'password',
+			name: 'Test User 1'
+		};
+
+		await api.post('/api/users').send(userPayload).expect(400);
+	});
+
+    test('username less than 3 chars', async () => {
+        const userPayload = {
+			username: 'tu',
+			password: 'password',
+			name: 'Test User 1'
+		};
+
+		await api.post('/api/users').send(userPayload).expect(400);
+    });
+
+    test('password < 3 chars', async () => {
+        const userPayload = {
+			username: 'username',
+			password: 'pa',
+			name: 'Test User 1'
+		};
+
+        await api.post('/api/users').send(userPayload).expect(400);
+    })
+});
