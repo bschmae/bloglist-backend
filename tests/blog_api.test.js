@@ -33,16 +33,22 @@ describe('returns correct data', () => {
     });
 });
 
+const getJwtToken = async () => {
+    const testUser = { username: 'testUser1', password: 'password' };
+    const userLogin = await api.post('/api/login').send(testUser).expect(200);
+    return userLogin.body.token;
+};
+
 describe('addition of blog', () => {
-    test('correclty add new blog', async () => {
+    test('correctly add new blog', async () => {
         const newBlog = {
             title: "Biden vs Trump - Continued",
             author: "Nate Silver",
             url: "https://fivethirtyeight.com",
             likes: 200
         };
-    
-        await api.post('/api/blogs').send(newBlog).expect(201);
+
+        await api.post('/api/blogs').send(newBlog).set('authorization', `Bearer ${await getJwtToken()}`).expect(201);
     
         const response = await api.get('/api/blogs');
     
@@ -60,12 +66,12 @@ describe('addition of blog', () => {
             url: "https://fivethirtyeight.com",
         };
     
-        await api.post('/api/blogs').send(newBlog).expect(201);
+        await api.post('/api/blogs').set('authorization', `Bearer ${await getJwtToken()}`).send(newBlog).expect(201);
     
         const response = await api.get('/api/blogs');
     
         const blog = response.body.find(blog => blog.title === "Biden vs Trump - Continued");
-        console.log(blog);
+
         expect(blog.likes).toBe(0);
     });
     
@@ -75,7 +81,7 @@ describe('addition of blog', () => {
             author: "Nate Silver",
         };
     
-        await api.post('/api/blogs').send(newBlog).expect(400);
+        await api.post('/api/blogs').send(newBlog).set('authorization', `Bearer ${await getJwtToken()}`).expect(400);
     });    
 });
 
@@ -84,9 +90,12 @@ describe('deletion of a blog', () => {
         const blogResponse = await api.get('/api/blogs');
         const blogsAtStart = blogResponse.body;
 
-        const blogToDelete = blogsAtStart[0];
+
+        const blogToDelete = blogsAtStart[blogsAtStart.length - 1];
+        
         await api
         .delete(`/api/blogs/${blogToDelete.id}`)
+        .set('authorization', `Bearer ${await getJwtToken()}`)
         .expect(204);
 
         const newBlogResponse = await api.get('/api/blogs');
